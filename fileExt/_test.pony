@@ -8,6 +8,28 @@ actor Main is TestList
 		test(_TestFileReadArray)
 		test(_TestFileReadString)
 		test(_TestFileReadError)
+		test(_TestFileExtStreamer)
+
+actor StreamCounter is Streamable
+	var bytesRead:USize = 0
+	let bytesExpected:USize
+	let env:Env
+	
+	new create(env':Env, bytesExpected':USize) =>
+		bytesExpected = bytesExpected'
+		env = env'
+
+	be receiveStream(fileArrayIso:Array[U8] iso) =>
+		bytesRead = bytesRead + fileArrayIso.size()
+		if fileArrayIso.size() == 0 then
+			env.out.print("File stream completed, read " + bytesRead.string() + " of " + bytesExpected.string() + " bytes")
+		end
+
+class iso _TestFileExtStreamer is UnitTest
+	fun name(): String => "read file as stream"
+
+	fun apply(h: TestHelper) =>
+		FileExtStreamer (h.env, "test_large.txt", 512, StreamCounter(h.env, 206051))
 
 
 class iso _TestFileReadError is UnitTest

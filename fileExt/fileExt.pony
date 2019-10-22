@@ -1,4 +1,7 @@
 
+interface Streamable
+	be receiveStream(chunkIso:Array[U8] iso)
+
 type FileExtError is (String|None)
 
 /*
