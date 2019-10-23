@@ -11,9 +11,11 @@ actor FileExtStreamWriter is Streamable
 		target = target'
 		env = env'
 		
-		let caps = recover val FileCaps.>set(FileRead).>set(FileStat) end
 		try
 			var fromPath = FilePath(env.root as AmbientAuth, filePath, FileCaps.>all())?
+			if fromPath.exists() then
+				fromPath.remove()
+			end
 			file = File(fromPath)
 		end
 		
@@ -44,9 +46,11 @@ actor FileExtStreamWriterEnd is Streamable
 		file = None
 		env = env'
 
-		let caps = recover val FileCaps.>set(FileRead).>set(FileStat) end
 		try
 			var fromPath = FilePath(env.root as AmbientAuth, filePath, FileCaps.>all())?
+			if fromPath.exists() then
+				fromPath.remove()
+			end
 			file = File(fromPath)
 		end
 
