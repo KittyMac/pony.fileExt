@@ -5,31 +5,43 @@ actor Main is TestList
 	new make() => None
 
 	fun tag tests(test: PonyTest) =>
+	
 		test(_TestFileReadArray)
 		test(_TestFileReadString)
 		test(_TestFileReadError)
-		test(_TestFileExtStreamer)
+		
+		test(_TestFileWriteArray)
+		test(_TestFileWriteString)
+		
+		test(_TestFileExtStreaming)
+		
+		
 
-actor StreamCounter is Streamable
-	var bytesRead:USize = 0
-	let bytesExpected:USize
-	let env:Env
-	
-	new create(env':Env, bytesExpected':USize) =>
-		bytesExpected = bytesExpected'
-		env = env'
 
-	be receiveStream(fileArrayIso:Array[U8] iso) =>
-		bytesRead = bytesRead + fileArrayIso.size()
-		if fileArrayIso.size() == 0 then
-			env.out.print("File stream completed, read " + bytesRead.string() + " of " + bytesExpected.string() + " bytes")
-		end
-
-class iso _TestFileExtStreamer is UnitTest
+class iso _TestFileExtStreaming is UnitTest
 	fun name(): String => "read file as stream"
-
+	
+	
+	
 	fun apply(h: TestHelper) =>
-		FileExtStreamer (h.env, "test_large.txt", 512, StreamCounter(h.env, 206051))
+	
+		let callback = object val is StreamFinished
+			fun streamFinished() =>
+				h.env.out.print("Stream finished!")
+				true
+		end
+		
+		FileExtStreamReader(h.env, "test_large.txt", 512,
+			FileExtStreamPassthru(
+				FileExtStreamByteCounter(h.env,
+					FileExtStreamPassthru(
+						FileExtStreamWriter(h.env, "/tmp/test_large.txt",
+							FileExtStreamFinished(callback, FileExtStreamNone)
+						)
+					)
+				)
+			)
+		)
 
 
 class iso _TestFileReadError is UnitTest
@@ -79,4 +91,55 @@ class iso _TestFileReadArray is UnitTest
 	        end
 		} val)
 
-		
+
+
+
+
+class iso _TestFileWriteString is UnitTest
+
+
+	fun name(): String => "writeString"
+
+	fun apply(h: TestHelper) =>
+				
+		FileExtWriter.writeString(h.env, "/tmp/test.txt", "Hello, World!", {(err: FileExtError val) =>
+			match (err)
+			| let errorString: String val =>
+				h.env.out.print("writeString ended with error: " + errorString.string())
+			| None =>
+				
+			// Read the file back in and confirm it worked
+			FileExtReader.readAsString(h.env, "/tmp/test.txt", {(fileStringIso:String iso, err: FileExtError val) =>
+				if fileStringIso == "Hello, World!" then
+					h.env.out.print("writeString completed successfully")
+				else
+					h.env.out.print("writeString/readAsString comparison failed")
+				end
+			} val)
+				
+	        end
+		} val)
+
+class iso _TestFileWriteArray is UnitTest
+	fun name(): String => "readAsArray"
+
+	fun apply(h: TestHelper) =>
+
+		FileExtWriter.writeArray(h.env, "/tmp/test.txt", "Hello, World!".array(), {(err: FileExtError val) =>
+			match (err)
+			| let errorString: String val =>
+				h.env.out.print("writeString ended with error: " + errorString.string())
+			| None =>
+			
+			// Read the file back in and confirm it worked
+			FileExtReader.readAsArray(h.env, "/tmp/test.txt", {(fileArrayIso:Array[U8] iso, err: FileExtError val) =>
+				let fileString = String.from_iso_array(consume fileArrayIso)
+				if fileString == "Hello, World!" then
+					h.env.out.print("writeArray completed successfully")
+				else
+					h.env.out.print("writeArray/readAsArray comparison failed")
+				end
+			} val)
+			
+	        end
+		} val)

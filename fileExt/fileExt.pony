@@ -1,6 +1,8 @@
 
-interface Streamable
-	be receiveStream(chunkIso:Array[U8] iso)
+interface Streamable	
+	// new create(target:Streamable tag)
+	be stream(chunkIso:Array[U8] iso)
+	
 
 type FileExtError is (String|None)
 
