@@ -36,7 +36,7 @@ class iso _TestFileExtStreaming is UnitTest
 				FileExtStreamByteCounter(h.env,
 					FileExtStreamPassthru(
 						FileExtStreamWriter(h.env, "/tmp/test_large.txt",
-							FileExtStreamFinished(callback, FileExtStreamNone)
+							FileExtStreamFinished(callback, FileExtStreamEnd)
 						)
 					)
 				)

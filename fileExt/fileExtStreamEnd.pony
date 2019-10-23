@@ -1,6 +1,6 @@
 use "files"
 
-actor FileExtStreamNone is Streamable
+actor FileExtStreamEnd is Streamable
 	
 	be stream(chunkIso:Array[U8] iso) =>
 		true
