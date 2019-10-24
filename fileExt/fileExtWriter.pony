@@ -4,7 +4,11 @@ actor FileExtWriter
 	
 	fun _writeArray(env:Env, filePath:String, fileContentVal:Array[U8] val) ? =>
 		let fromPath = FilePath(env.root as AmbientAuth, filePath, FileCaps.>all())?
-
+		
+		if fromPath.exists() then
+			fromPath.remove()
+		end
+		
 	    let file = File(fromPath)
 	    let err = file.errno()
 
