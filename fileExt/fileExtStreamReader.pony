@@ -25,19 +25,20 @@ actor FileExtStreamReader is Streamable
 		    | FileOK =>
 				_streamNextChunk()
 		    else
-				target.stream(recover iso Array[U8] end)
+				target.stream(recover iso ByteBlock end)
 		    end
 		else
 			file = None
-			target.stream(recover iso Array[U8] end)
+			target.stream(recover iso ByteBlock end)
 		end
 	
-	be stream(fileArrayIso:Array[U8] iso) =>
-		target.stream(consume fileArrayIso)
+	be stream(fileByteBlockIso:ByteBlock iso) =>
+		target.stream(consume fileByteBlockIso)
 	
 	be _streamNextChunk() =>
 		try
-			let fileContentIso = (file as File).read(bufferSize)
+			let fileContentIso = (file as File).read_byteblock(bufferSize)
+						
 			if fileContentIso.size() == 0 then
 				(file as File).dispose()
 				target.stream(consume fileContentIso)
@@ -49,7 +50,7 @@ actor FileExtStreamReader is Streamable
 			try
 				(file as File).dispose()
 			end
-			target.stream(recover iso Array[U8] end)
+			target.stream(recover iso ByteBlock end)
 		end
 		
 	

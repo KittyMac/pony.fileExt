@@ -10,7 +10,7 @@ actor FileExtStreamByteCounter is Streamable
 		env = env'
 		target = target'
 	
-	be stream(fileArrayIso:Array[U8] iso) =>
+	be stream(fileArrayIso:ByteBlock iso) =>
 		bytesRead = bytesRead + fileArrayIso.size()
 		if fileArrayIso.size() == 0 then
 			env.out.print("Stream closed, " + bytesRead.string() + " bytes were read")

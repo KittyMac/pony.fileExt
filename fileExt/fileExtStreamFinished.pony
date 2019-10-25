@@ -12,7 +12,7 @@ actor FileExtStreamFinished is Streamable
 		target = target'
 		sender = sender'
 
-	be stream(chunkIso:Array[U8] iso) =>
+	be stream(chunkIso:ByteBlock iso) =>
 		if chunkIso.size() == 0 then
 			sender.streamFinished()
 		end

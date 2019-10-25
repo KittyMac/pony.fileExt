@@ -1,6 +1,18 @@
 # pony.fileExt
 
-Some extensions to simplify File IO for Pony.
+**WARNING: [THIS ONLY WORKS WITH MY FORK OF PONY](https://github.com/KittyMac/ponyc/tree/roc)**
+
+### Purpose
+
+This repository is just me hacking around with [Pony](https://www.ponylang.io). It should not be used as an example of good Pony programming practices.
+
+### Why does this require a forked Pony?
+
+As I understand it, the way memory management in Pony works is it will allocate (from the operating system) as much memory as your program needs while it is running.  However, it will **never** return that memory to the operating system even after your program has properly allowed all of its allocations to be disposed of (ie when the garbage collector "frees" memory from a garbage collected object, the gc keeps holding on to that memory and never releases it).  This means that your Pony program will always retain the maximum amount of memory it has used at any point in its execution.
+
+When attempting to stream large amounts of data, memory spikes can lead to your program holding on to many more operating system resources than it actually needs.
+
+To combat this, I have written a ByteBlock class in the Pony collections package. A ByteBlock is a non-resizeable chunk of memory which exists outside of the context of the garbage collector (ie it is just malloc'd and free'd). This is them used by the streaming actors here to allow large chunks of memory to be passed around and cleaned up immediately when they are done being used. This avoids the "memory bloat" described above.
 
 ### Streaming reading and writing
 
@@ -34,12 +46,12 @@ FileExtReader.readAsString(h.env, "test.txt", {(fileStringIso:String iso, err: F
 ```
 
 ```
-FileExtReader.readAsArray(h.env, "test.txt", {(fileArrayIso:Array[U8] iso, err: FileExtError val) =>
+FileExtReader.readAsArray(h.env, "test.txt", {(fileArrayIso:ByteBlock iso, err: FileExtError val) =>
 		match (err)
 		| let errorString: String val =>
 			h.env.out.print("readAsArray ended with error: " + errorString.string())
 		| None =>
-			let fileArray:Array[U8] ref = consume fileArrayIso
+			let fileArray:ByteBlock ref = consume fileArrayIso
 			h.env.out.print("readAsArray read " + fileArray.size().string() + " bytes")
 	    end
 	} val)

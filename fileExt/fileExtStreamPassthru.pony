@@ -7,6 +7,6 @@ actor FileExtStreamPassthru is Streamable
 	new create(target':Streamable tag) =>
 		target = target'
 	
-	be stream(chunkIso:Array[U8] iso) =>
+	be stream(chunkIso:ByteBlock iso) =>
 		target.stream(consume chunkIso)
 	
