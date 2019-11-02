@@ -6,6 +6,9 @@ actor FileExtFlowWriter is (FlowConsumerAck)
 	var file:File
 
 	new create (filePath:FilePath) =>
+		if filePath.exists() then
+			filePath.remove()
+		end
 		file = File(filePath)
 	
 	be flowFin() =>
@@ -16,4 +19,5 @@ actor FileExtFlowWriter is (FlowConsumerAck)
 		try
 			file.write_byteblock(data as ByteBlock)
 		end
+		sender.ackFlow()
 		
