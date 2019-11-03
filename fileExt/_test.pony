@@ -6,7 +6,7 @@ actor Main is TestList
 	new make() => None
 
 	fun tag tests(test: PonyTest) =>
-	/*
+	
 		test(_TestFileReadArray)
 		test(_TestFileReadString)
 		test(_TestFileReadByteBlock)
@@ -15,7 +15,7 @@ actor Main is TestList
 		test(_TestFileWriteArray)
 		test(_TestFileWriteString)
 		test(_TestFileWriteByteBlock)
-		*/
+		
 		test(_TestFileExtFlowing)
 
 
@@ -173,7 +173,7 @@ class iso _TestFileExtFlowing is UnitTest
 		try
 			var inFilePath = FilePath(h.env.root as AmbientAuth, "test_large.txt", FileCaps.>all())?
 			var outFilePath = FilePath(h.env.root as AmbientAuth, "/tmp/test_large.txt", FileCaps.>all())?
-			FileExtFlowReader(inFilePath, 64, 2,
+			FileExtFlowReader(inFilePath, 512, 2,
 				FileExtFlowWriter(outFilePath)
 			)
 		end
