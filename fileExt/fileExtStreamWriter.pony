@@ -4,6 +4,8 @@ use "flow"
 actor FileExtFlowWriterEnd is Flowable
 	
 	var file:File
+	
+	fun _batch():USize => 4
 
 	new create (filePath:FilePath) =>
 		file = File(filePath)
@@ -14,7 +16,9 @@ actor FileExtFlowWriterEnd is Flowable
 	be flowReceived(dataIso:Any iso) =>
 		let data:Any ref = consume dataIso
 		try
-			file.write_byteblock(data as ByteBlock)
+			let block = data as ByteBlock
+			file.write_byteblock(block)
+			block.free()
 		end
 
 
