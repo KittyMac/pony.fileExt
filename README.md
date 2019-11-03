@@ -1,16 +1,24 @@
 # pony.fileExt
 
+**WARNING: [THIS ONLY WORKS WITH MY FORK OF PONY](https://github.com/KittyMac/ponyc/tree/roc)**
+
 ### Purpose
 
-Note: This repository is just me hacking around with [Pony](https://www.ponylang.io). It should not be used as an example of good Pony programming practices.
+This repository is just me hacking around with [Pony](https://www.ponylang.io). It should not be used as an example of good Pony programming practices.
 
-The purpose of this library is to provide one line solutions for reading and writing data to files, concurrently using actors, either all in one or streaming solutions using the [pony.flow](https://github.com/KittyMac/pony.flow) library.
+### Why does this require a forked Pony?
+
+As I understand it, the way memory management in Pony works is it will allocate (from the operating system) as much memory as your program needs while it is running.  However, it will **never** return that memory to the operating system even after your program has properly allowed all of its allocations to be disposed of (ie when the garbage collector "frees" memory from a garbage collected object, the gc keeps holding on to that memory and never releases it).  This means that your Pony program will always retain the maximum amount of memory it has used at any point in its execution.
+
+When attempting to stream large amounts of data, memory spikes can lead to your program holding on to many more operating system resources than it actually needs.
+
+To combat this, I have written a ByteBlock class in the Pony collections package. A ByteBlock is a non-resizeable chunk of memory which exists outside of the context of the garbage collector (ie it is just malloc'd and free'd). This is them used by the streaming actors here to allow large chunks of memory to be passed around and cleaned up immediately when they are done being used. This avoids the "memory bloat" described above.
 
 ### Streaming reading and writing
 
-For optimal usage you should use the Flow interface. This will process data in chunks, with each chunk calling one behaviour on the actor. This should allow for optimal scheduling in Pony, as we're not blocking on super large IO operations.
+For optimal usage you should use the Streamable interface. This will process data in chunks, with each chunk calling one behaviour on the actor. This should allow for optimal scheduling in Pony, as we're not blocking on super large IO operations.
 
-The Flow interface supports chaining modules together generically. For example, you can combine chain the file stream reader to the [bzip2 stream decompressor](https://github.com/KittyMac/pony.bzip2) and the file stream writer very simply.
+The Streamable interface support chaining modules together. For example, you can combine chain the file stream reader to the [bzip2 stream decompressor](https://github.com/KittyMac/pony.bzip2) and the file stream writer very simply.
 
 ```
 FileExtStreamReader(h.env, "test_large.bz2", 1024*1024*16,

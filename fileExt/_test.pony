@@ -1,12 +1,11 @@
 use "ponytest"
-use "files"
 
 actor Main is TestList
 	new create(env: Env) => PonyTest(env, this)
 	new make() => None
 
 	fun tag tests(test: PonyTest) =>
-	
+	/*
 		test(_TestFileReadArray)
 		test(_TestFileReadString)
 		test(_TestFileReadByteBlock)
@@ -15,11 +14,11 @@ actor Main is TestList
 		test(_TestFileWriteArray)
 		test(_TestFileWriteString)
 		test(_TestFileWriteByteBlock)
-		
-		test(_TestFileExtFlowing)
+		*/
+		test(_TestFileExtStreaming)
 
 
-// ******************* Non-Flowing Tests *******************
+// ******************* Non-Streaming Tests *******************
 
 class iso _TestFileReadArray is UnitTest
 	fun name(): String => "readAsArray"
@@ -166,14 +165,29 @@ class iso _TestFileWriteByteBlock is UnitTest
 
 // ********************************************************
 
-class iso _TestFileExtFlowing is UnitTest
+class iso _TestFileExtStreaming is UnitTest
 	fun name(): String => "read file as stream"
 	
+	
+	
 	fun apply(h: TestHelper) =>
-		try
-			var inFilePath = FilePath(h.env.root as AmbientAuth, "test_large.txt", FileCaps.>all())?
-			var outFilePath = FilePath(h.env.root as AmbientAuth, "/tmp/test_large.txt", FileCaps.>all())?
-			FileExtFlowReader(inFilePath, 512, 2,
-				FileExtFlowWriter(outFilePath)
-			)
+	
+		let callback = object val is StreamFinished
+			fun streamFinished() =>
+				h.env.out.print("Stream finished!")
+				true
 		end
+		
+		FileExtStreamReader(h.env, "test_large.txt", 512,
+			FileExtStreamPassthru(
+				FileExtStreamByteCounter(h.env,
+					FileExtStreamPassthru(
+						FileExtStreamWriter(h.env, "/tmp/test_large.txt",
+							FileExtStreamByteCounter(h.env,
+								FileExtStreamFinished(callback, FileExtStreamEnd)
+							)
+						)
+					)
+				)
+			)
+		)
