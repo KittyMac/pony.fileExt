@@ -1,20 +1,22 @@
 use "files"
+use "flow"
 
-actor FileExtStreamByteCounter is Streamable
+actor FileExtFlowByteCounter is Flowable
 	
 	var bytesRead:USize = 0
-	let env:Env
-	var target:Streamable tag
+	var target:Flowable tag
 	
-	new create(env':Env, target':Streamable tag) =>
-		env = env'
+	new create(target':Flowable tag) =>
 		target = target'
 	
-	be stream(fileArrayIso:ByteBlock iso) =>
-		bytesRead = bytesRead + fileArrayIso.size()
-		if fileArrayIso.size() == 0 then
-			env.out.print("Stream closed, " + bytesRead.string() + " bytes were read")
+	be flowFinished() =>
+		@fprintf[I64](@pony_os_stdout[Pointer[U8]](), "Flow closed, %d bytes were read\n".cstring(), bytesRead)
+		target.flowFinished()
+
+	be flowReceived(dataIso:Any iso) =>
+		try
+			bytesRead = bytesRead + (dataIso as ByteBlock iso).size()
 		end
-		target.stream(consume fileArrayIso)
+		target.flowReceived(consume dataIso)
 	
 		

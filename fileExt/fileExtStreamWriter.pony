@@ -1,66 +1,40 @@
 use "files"
+use "flow"
 
-actor FileExtStreamWriter is Streamable
+actor FileExtFlowWriterEnd is Flowable
 	
-	var file:(File|None)
-	let target:Streamable tag
-	let env:Env
+	var file:File
 
-	new create (env':Env, filePath:String, target':Streamable tag) =>
-		file = None
+	new create (filePath:FilePath) =>
+		file = File(filePath)
+	
+	be flowFinished() =>
+		file.dispose()
+		
+	be flowReceived(dataIso:Any iso) =>
+		let data:Any ref = consume dataIso
+		try
+			file.write_byteblock(data as ByteBlock)
+		end
+
+
+actor FileExtFlowWriter is Flowable
+
+	var file:File
+	let target:Flowable tag
+	
+	fun _batch():USize => 4
+
+	new create (filePath:FilePath, target':Flowable tag) =>
 		target = target'
-		env = env'
-		
-		try
-			var fromPath = FilePath(env.root as AmbientAuth, filePath, FileCaps.>all())?
-			if fromPath.exists() then
-				fromPath.remove()
-			end
-			file = File(fromPath)
-		end
-		
-	be stream(fileArrayIso:ByteBlock iso) =>		
-		try
-			let actualFile = (file as File)
-			if fileArrayIso.size() == 0 then
-				actualFile.dispose()
-				target.stream(consume fileArrayIso)
-			else
-				let nextfileArrayIso = actualFile.write_byteblock_iso(consume fileArrayIso)
-				target.stream(consume nextfileArrayIso)
-			end
-		end
+		file = File(filePath)
 
-actor FileExtStreamWriterEnd is Streamable
-
-	var file:(File|None)
-	let env:Env
-
-	new create (env':Env, filePath:String) =>
-		file = None
-		env = env'
-
-		try
-			var fromPath = FilePath(env.root as AmbientAuth, filePath, FileCaps.>all())?
-			if fromPath.exists() then
-				fromPath.remove()
-			end
-			file = File(fromPath)
-		end
-
-	be stream(fileArrayIso:ByteBlock iso) =>		
-		try
-			let actualFile = (file as File)
-			if fileArrayIso.size() == 0 then
-				actualFile.dispose()
-			else
-				actualFile.write_byteblock(consume fileArrayIso)
-			end
-		end
-
+	be flowFinished() =>
+		file.dispose()
+		target.flowFinished()
 	
-	
-
-		
-		
-
+	be flowReceived(dataIso:Any iso) =>
+		try
+			let nextBlockIso = file.write_byteblock_iso((consume dataIso) as ByteBlock iso^)
+			target.flowReceived(consume nextBlockIso)
+		end

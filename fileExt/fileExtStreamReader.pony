@@ -1,57 +1,30 @@
+use "flow"
 use "files"
 
-actor FileExtStreamReader is Streamable
+actor FileExtFlowReader
 	
-	var file:(File|None) = None
+	let target:Flowable tag
 	
-	let target:Streamable tag
+	var file:File
 	let bufferSize:USize
-	let env:Env
-	let filePath:String
 	
-	new create (env':Env, filePath':String, bufferSize':USize, target':Streamable tag) =>
+	new create (filePath:FilePath, bufferSize':USize, target':Flowable tag) =>
 		bufferSize = bufferSize'
-		env = env'
-		filePath = filePath'
 		target = target'
 		
-		let caps = recover val FileCaps.>set(FileRead).>set(FileStat) end
-		try
-			var fromPath = FilePath(env.root as AmbientAuth, filePath, caps)?
-			file = File.open(fromPath)
-		
-		    let err = (file as File).errno()
-		    match err
-		    | FileOK =>
-				_streamNextChunk()
-		    else
-				target.stream(recover iso ByteBlock end)
-		    end
+		file = File.open(filePath)
+		_readNextChunk()
+	
+	be _readNextChunk() =>
+		let fileContentIso = file.read_byteblock(bufferSize)		
+		if fileContentIso.size() > 0 then
+			target.flowReceived(consume fileContentIso)
+			_readNextChunkAgain()
 		else
-			file = None
-			target.stream(recover iso ByteBlock end)
+			file.dispose()
+			target.flowFinished()
 		end
+
 	
-	be stream(fileByteBlockIso:ByteBlock iso) =>
-		target.stream(consume fileByteBlockIso)
-	
-	be _streamNextChunk() =>
-		try
-			let fileContentIso = (file as File).read_byteblock(bufferSize)
-						
-			if fileContentIso.size() == 0 then
-				(file as File).dispose()
-				target.stream(consume fileContentIso)
-			else
-				target.stream(consume fileContentIso)
-				_streamNextChunk()
-			end
-		else
-			try
-				(file as File).dispose()
-			end
-			target.stream(recover iso ByteBlock end)
-		end
-		
-	
-	
+	be _readNextChunkAgain() =>
+		_readNextChunk()

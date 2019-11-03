@@ -1,20 +1,21 @@
 use "files"
+use "flow"
 
-interface StreamFinished	
-	fun streamFinished()
+interface FlowFinished	
+	fun flowFinished()
 
-actor FileExtStreamFinished is Streamable
+actor FileExtFlowFinished is Flowable
 	
-	let target:Streamable tag
-	let sender:StreamFinished val
+	let target:Flowable tag
+	let sender:FlowFinished val
 
-	new create(sender':StreamFinished val, target':Streamable tag) =>
+	new create(sender':FlowFinished val, target':Flowable tag) =>
 		target = target'
 		sender = sender'
 
-	be stream(chunkIso:ByteBlock iso) =>
-		if chunkIso.size() == 0 then
-			sender.streamFinished()
-		end
-		target.stream(consume chunkIso)
+	be flowFinished() =>
+		sender.flowFinished()
+		
+	be flowReceived(dataIso:Any iso) =>
+		target.flowReceived(consume dataIso)
 	

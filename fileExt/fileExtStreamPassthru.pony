@@ -1,12 +1,15 @@
 use "files"
+use "flow"
 
-actor FileExtStreamPassthru is Streamable
+actor FileExtFlowPassthru is Flowable
 	
-	let target:Streamable tag
+	let target:Flowable tag
 
-	new create(target':Streamable tag) =>
+	new create(target':Flowable tag) =>
 		target = target'
 	
-	be stream(chunkIso:ByteBlock iso) =>
-		target.stream(consume chunkIso)
+	be flowFinished() =>
+		target.flowFinished()
 	
+	be flowReceived(dataIso:Any iso) =>
+		target.flowReceived(consume dataIso)

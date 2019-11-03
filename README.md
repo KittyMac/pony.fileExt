@@ -16,9 +16,9 @@ To combat this, I have written a ByteBlock class in the Pony collections package
 
 ### Streaming reading and writing
 
-For optimal usage you should use the Streamable interface. This will process data in chunks, with each chunk calling one behaviour on the actor. This should allow for optimal scheduling in Pony, as we're not blocking on super large IO operations.
+For optimal usage you should use the Flowable interface. This will process data in chunks, with each chunk calling one behaviour on the actor. This should allow for optimal scheduling in Pony, as we're not blocking on super large IO operations.
 
-The Streamable interface support chaining modules together. For example, you can combine chain the file stream reader to the [bzip2 stream decompressor](https://github.com/KittyMac/pony.bzip2) and the file stream writer very simply.
+The Flowable interface support chaining modules together. For example, you can combine chain the file stream reader to the [bzip2 stream decompressor](https://github.com/KittyMac/pony.bzip2) and the file stream writer very simply.
 
 ```
 FileExtStreamReader(h.env, "test_large.bz2", 1024*1024*16,

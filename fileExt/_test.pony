@@ -1,4 +1,5 @@
 use "ponytest"
+use "files"
 
 actor Main is TestList
 	new create(env: Env) => PonyTest(env, this)
@@ -15,7 +16,7 @@ actor Main is TestList
 		test(_TestFileWriteString)
 		test(_TestFileWriteByteBlock)
 		*/
-		test(_TestFileExtStreaming)
+		test(_TestFileExtFlowing)
 
 
 // ******************* Non-Streaming Tests *******************
@@ -165,29 +166,43 @@ class iso _TestFileWriteByteBlock is UnitTest
 
 // ********************************************************
 
-class iso _TestFileExtStreaming is UnitTest
+class iso _TestFileExtFlowing is UnitTest
 	fun name(): String => "read file as stream"
 	
 	
 	
-	fun apply(h: TestHelper) =>
-	
-		let callback = object val is StreamFinished
-			fun streamFinished() =>
-				h.env.out.print("Stream finished!")
-				true
+	fun apply(h: TestHelper) =>	
+	/*
+		try
+			var inFilePath = FilePath(h.env.root as AmbientAuth, "test_large.txt", FileCaps.>all())?
+			var outFilePath = FilePath(h.env.root as AmbientAuth, "/tmp/test_large.txt", FileCaps.>all())?
+			FileExtFlowReader(inFilePath, 512,
+				FileExtFlowWriter(outFilePath, FileExtFlowEnd)
+			)
 		end
+	*/
 		
-		FileExtStreamReader(h.env, "test_large.txt", 512,
-			FileExtStreamPassthru(
-				FileExtStreamByteCounter(h.env,
-					FileExtStreamPassthru(
-						FileExtStreamWriter(h.env, "/tmp/test_large.txt",
-							FileExtStreamByteCounter(h.env,
-								FileExtStreamFinished(callback, FileExtStreamEnd)
+		try
+			let callback = object val is FlowFinished
+				fun flowFinished() =>
+					h.env.out.print("Flow finished!")
+					true
+			end
+			
+			var inFilePath = FilePath(h.env.root as AmbientAuth, "test_large.txt", FileCaps.>all())?
+			var outFilePath = FilePath(h.env.root as AmbientAuth, "/tmp/test_large.txt", FileCaps.>all())?
+			
+			FileExtFlowReader(inFilePath, 512,
+				FileExtFlowPassthru(
+					FileExtFlowByteCounter(
+						FileExtFlowPassthru(
+							FileExtFlowWriter(outFilePath,
+								FileExtFlowByteCounter(
+									FileExtFlowFinished(callback, FileExtFlowEnd)
+								)
 							)
 						)
 					)
 				)
 			)
-		)
+		end

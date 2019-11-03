@@ -1,7 +1,13 @@
 use "files"
+use "flow"
 
-actor FileExtStreamEnd is Streamable
+actor FileExtFlowEnd is Flowable
 	
-	be stream(chunkIso:ByteBlock iso) =>
-		chunkIso.free()
+	be flowFinished() =>
+		true
+	
+	be flowReceived(dataIso:Any iso) =>
+		try
+			(dataIso as ByteBlock iso).free()
+		end
 	
