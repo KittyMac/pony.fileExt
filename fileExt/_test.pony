@@ -11,12 +11,12 @@ actor Main is TestList
 		test(_TestFileReadString)
 		test(_TestFileReadByteBlock)
 		test(_TestFileReadError)
-		
+		*/
 		test(_TestFileWriteArray)
 		test(_TestFileWriteString)
 		test(_TestFileWriteByteBlock)
-		*/
-		test(_TestFileExtFlowing)
+		
+		//test(_TestFileExtFlowing)
 
 
 // ******************* Non-Streaming Tests *******************
