@@ -37,6 +37,9 @@ primitive FileExt
 	
 	fun byteBlockToFile(content:ByteBlock box, filePath:String box)? =>
 		_sharedToFile(content, filePath)?
+		
+	fun bitmapToFile(content:Bitmap box, filePath:String box)? =>
+		_sharedToFile(content, filePath)?
 			
 	
 	fun fileToString(filePath:String box):String ref? =>
@@ -115,6 +118,30 @@ primitive FileExt
 
 		@close(fd)
 		
+		content
+	
+	fun fileToBitmap(w:USize, h:USize, filePath:String box):Bitmap ref? =>
+		let fd = @open(filePath.cstring(), pR(), 0755)
+		if fd < 0 then
+			error
+		end
+
+		let totalSize = @lseek(fd, 0, sEND())
+		let content = Bitmap(w, h)
+		@lseek(fd, 0, sSET())
+
+		var p:USize = 0
+		var r:ISize = 0
+		while p < totalSize do
+			r = @read(fd, content.cpointer(p), totalSize - p)
+			if r < 0 then
+				break
+			end
+			p = p + r.usize()
+		end
+
+		@close(fd)
+	
 		content
 	
 
