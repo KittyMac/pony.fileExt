@@ -1,6 +1,9 @@
 use "files"
 use "flow"
 
+interface Freeable
+	fun free()
+
 actor FileExtFlowEnd is Flowable
 	
 	be flowFinished() =>
@@ -8,6 +11,6 @@ actor FileExtFlowEnd is Flowable
 	
 	be flowReceived(dataIso:Any iso) =>
 		try
-			(dataIso as ByteBlock iso).free()
+			(dataIso as Freeable iso).free()
 		end
 	

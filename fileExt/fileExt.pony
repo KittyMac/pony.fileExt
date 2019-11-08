@@ -21,6 +21,18 @@ primitive FileExt
 	fun sCUR():I32 => 1 // set file offset to current plus offset
 	fun sEND():I32 => 2 // set file offset to EOF plus offset
 	
+	fun open(filePath:String):I32 =>
+		@open(filePath.cstring(), pCRW(), 0x1B6)
+	
+	fun close(fd:I32) =>
+		@close(fd)
+	
+	fun write(fd:I32, content:Pointer[U8], length:USize) =>
+		@write(fd, content, length)
+	
+	fun read(fd:I32, content:Pointer[U8], length:USize) =>
+		@read(fd, content, length)
+	
 	fun _sharedToFile(content:CPointer box, filePath:String box)? =>
 		let fd = @open(filePath.cstring(), pCRW(), 0x1B6)
 		if fd < 0 then
