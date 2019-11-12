@@ -6,6 +6,7 @@ actor FileExtFlowWriterEnd is Flowable
 	var file:File
 	
 	fun _batch():USize => 4
+	fun _tag():USize => 110
 
 	new create (filePath:FilePath) =>
 		file = File(filePath)
@@ -28,6 +29,7 @@ actor FileExtFlowWriter is Flowable
 	let target:Flowable tag
 	
 	fun _batch():USize => 4
+	fun _tag():USize => 111
 
 	new create (filePath:FilePath, target':Flowable tag) =>
 		target = target'

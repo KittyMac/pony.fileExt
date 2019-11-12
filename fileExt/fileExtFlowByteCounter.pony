@@ -5,6 +5,7 @@ actor FileExtFlowByteCounter is Flowable
 	
 	var bytesRead:USize = 0
 	var target:Flowable tag
+	fun _tag():USize => 105
 	
 	new create(target':Flowable tag) =>
 		target = target'

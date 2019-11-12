@@ -8,6 +8,8 @@ actor FileExtFlowReader
 	var file:File
 	let bufferSize:USize
 	
+	fun _tag():USize => 109
+	
 	new create (filePath:FilePath, bufferSize':USize, target':Flowable tag) =>
 		bufferSize = bufferSize'
 		target = target'

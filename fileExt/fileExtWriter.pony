@@ -2,6 +2,8 @@ use "files"
 use "collections"
 
 actor FileExtWriter
+
+	fun _tag():USize => 113
 	
 	be writeString (env:Env, filePath:String, fileContents:String, completionVal: {(FileExtError val)} val) =>
 		try

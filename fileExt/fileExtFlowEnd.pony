@@ -5,6 +5,8 @@ interface Freeable
 	fun free()
 
 actor FileExtFlowEnd is Flowable
+
+	fun _tag():USize => 106
 	
 	be flowFinished() =>
 		true

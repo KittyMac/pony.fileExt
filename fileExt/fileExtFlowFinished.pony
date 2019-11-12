@@ -8,6 +8,8 @@ actor FileExtFlowFinished is Flowable
 	
 	let target:Flowable tag
 	let sender:FlowFinished val
+	
+	fun _tag():USize => 107
 
 	new create(sender':FlowFinished val, target':Flowable tag) =>
 		target = target'

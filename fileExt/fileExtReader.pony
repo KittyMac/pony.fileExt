@@ -5,6 +5,8 @@ actor FileExtReader
 	FileExtReader is an actor which provides quick and simple functionality for reading files
 	"""
 	
+	fun _tag():USize => 112
+	
 	be readAsString (env:Env, filePath:String, completionVal: {(String iso, FileExtError val)} val) =>
 		try
 			completionVal(recover iso FileExt.fileToString(filePath)? end, None)
