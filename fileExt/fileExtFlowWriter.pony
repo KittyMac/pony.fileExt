@@ -3,44 +3,41 @@ use "flow"
 
 actor FileExtFlowWriterEnd is Flowable
 	
-	var file:File
+	var fd:I32
 	
-	fun _batch():USize => 4
 	fun _tag():USize => 110
 
-	new create (filePath:FilePath) =>
-		file = File(filePath)
+	new create (filePath:String) =>
+		fd = FileExt.open(filePath)
 	
 	be flowFinished() =>
-		file.dispose()
+		FileExt.close(fd)
 		
 	be flowReceived(dataIso:Any iso) =>
 		let data:Any ref = consume dataIso
 		try
-			let block = data as ByteBlock
-			file.write_byteblock(block)
-			block.free()
+			let block = data as CPointer
+			FileExt.write(fd, block.cpointer(0), block.size())
 		end
 
 
 actor FileExtFlowWriter is Flowable
 
-	var file:File
+	var fd:I32
 	let target:Flowable tag
 	
-	fun _batch():USize => 4
 	fun _tag():USize => 111
 
-	new create (filePath:FilePath, target':Flowable tag) =>
+	new create (filePath:String, target':Flowable tag) =>
 		target = target'
-		file = File(filePath)
+		fd = FileExt.open(filePath)
 
 	be flowFinished() =>
-		file.dispose()
+		FileExt.close(fd)
 		target.flowFinished()
 	
 	be flowReceived(dataIso:Any iso) =>
 		try
-			let nextBlockIso = file.write_byteblock_iso((consume dataIso) as ByteBlock iso^)
-			target.flowReceived(consume nextBlockIso)
+			FileExt.write(fd, (dataIso as CPointer iso).cpointer(0), (dataIso as CPointer iso).size())
+			target.flowReceived(consume dataIso)
 		end

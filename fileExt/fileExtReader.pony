@@ -21,9 +21,3 @@ actor FileExtReader
 			completionVal(recover iso Array[U8] end, "Failed to read file " + filePath)
 		end
 	
-	be readAsByteBlock (env:Env, filePath:String, completionVal: {(ByteBlock iso, FileExtError val)} val) =>
-		try
-			completionVal(recover iso FileExt.fileToByteBlock(filePath)? end, None)
-		else
-			completionVal(recover iso ByteBlock end, "Failed to read file " + filePath)
-		end

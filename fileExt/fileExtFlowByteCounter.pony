@@ -16,7 +16,7 @@ actor FileExtFlowByteCounter is Flowable
 
 	be flowReceived(dataIso:Any iso) =>
 		try
-			bytesRead = bytesRead + (dataIso as ByteBlock iso).size()
+			bytesRead = bytesRead + (dataIso as CPointer iso).size()
 		end
 		target.flowReceived(consume dataIso)
 	

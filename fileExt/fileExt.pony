@@ -10,7 +10,6 @@ type FileExtError is (String|None)
 interface CPointer
 	fun cpointer(offset: USize = 0): Pointer[U8] tag
 	fun size(): USize
-	
 
 // just a straight wrapper around unix open/write/close; seems to kicks 
 // the pants off of Pony's File class in terms of performance
@@ -27,10 +26,10 @@ primitive FileExt
 	fun close(fd:I32) =>
 		@close(fd)
 	
-	fun write(fd:I32, content:Pointer[U8], length:USize) =>
+	fun write(fd:I32, content:Pointer[U8] tag, length:USize):ISize =>
 		@write(fd, content, length)
 	
-	fun read(fd:I32, content:Pointer[U8], length:USize) =>
+	fun read(fd:I32, content:Pointer[U8] tag, length:USize):ISize =>
 		@read(fd, content, length)
 	
 	fun _sharedToFile(content:CPointer box, filePath:String box)? =>
@@ -45,12 +44,6 @@ primitive FileExt
 		_sharedToFile(content, filePath)?
 	
 	fun arrayToFile(content:Array[U8] box, filePath:String box)? =>
-		_sharedToFile(content, filePath)?
-	
-	fun byteBlockToFile(content:ByteBlock box, filePath:String box)? =>
-		_sharedToFile(content, filePath)?
-		
-	fun bitmapToFile(content:Bitmap box, filePath:String box)? =>
 		_sharedToFile(content, filePath)?
 			
 	
@@ -106,54 +99,6 @@ primitive FileExt
 	
 		@close(fd)
 			
-		content
-	
-	fun fileToByteBlock(filePath:String box):ByteBlock ref? =>
-		let fd = @open(filePath.cstring(), pR(), 0755)
-		if fd < 0 then
-			error
-		end
-
-		let totalSize = @lseek(fd, 0, sEND())
-		let content = ByteBlock(totalSize)
-		@lseek(fd, 0, sSET())
-
-		var p:USize = 0
-		var r:ISize = 0
-		while p < totalSize do
-			r = @read(fd, content.cpointer(p), totalSize - p)
-			if r < 0 then
-				break
-			end
-			p = p + r.usize()
-		end
-
-		@close(fd)
-		
-		content
-	
-	fun fileToBitmap(w:USize, h:USize, filePath:String box):Bitmap ref? =>
-		let fd = @open(filePath.cstring(), pR(), 0755)
-		if fd < 0 then
-			error
-		end
-
-		let totalSize = @lseek(fd, 0, sEND())
-		let content = Bitmap(w, h)
-		@lseek(fd, 0, sSET())
-
-		var p:USize = 0
-		var r:ISize = 0
-		while p < totalSize do
-			r = @read(fd, content.cpointer(p), totalSize - p)
-			if r < 0 then
-				break
-			end
-			p = p + r.usize()
-		end
-
-		@close(fd)
-	
 		content
 	
 

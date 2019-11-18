@@ -1,8 +1,6 @@
 use "files"
 use "flow"
 
-interface Freeable
-	fun free()
 
 actor FileExtFlowEnd is Flowable
 
@@ -12,7 +10,5 @@ actor FileExtFlowEnd is Flowable
 		true
 	
 	be flowReceived(dataIso:Any iso) =>
-		try
-			(dataIso as Freeable iso).free()
-		end
+		consume dataIso
 	

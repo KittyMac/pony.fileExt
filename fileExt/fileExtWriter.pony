@@ -21,10 +21,3 @@ actor FileExtWriter
 			completionVal("Failed to write file " + filePath)
 		end
 	
-	be writeByteBlock (env:Env, filePath:String, fileContents:ByteBlock val, completionVal: {(FileExtError val)} val) =>
-		try
-			FileExt.byteBlockToFile(fileContents, filePath)?
-			completionVal(None)
-		else
-			completionVal("Failed to write file " + filePath)
-		end

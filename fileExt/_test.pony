@@ -6,17 +6,20 @@ actor Main is TestList
 	new make() => None
 
 	fun tag tests(test: PonyTest) =>
-	/*
-		test(_TestFileReadArray)
-		test(_TestFileReadString)
-		test(_TestFileReadByteBlock)
-		test(_TestFileReadError)
-		*/
-		test(_TestFileWriteArray)
-		test(_TestFileWriteString)
-		test(_TestFileWriteByteBlock)
-		
-		//test(_TestFileExtFlowing)
+		//test(_TestFileReadArray)
+		//test(_TestFileReadString)
+		//test(_TestFileReadError)
+        
+		//test(_TestFileWriteArray)
+		//test(_TestFileWriteString)
+        
+		test(_TestFileExtFlowing)
+	
+ 	fun @runtime_override_defaults(rto: RuntimeOptions) =>
+		rto.ponyminthreads = 2
+		rto.ponynoblock = true
+		rto.ponygcinitial = 0
+		rto.ponygcfactor = 1.0
 
 
 // ******************* Non-Streaming Tests *******************
@@ -49,21 +52,6 @@ class iso _TestFileReadString is UnitTest
 				//This is a test document.
 				let fileString:String ref = consume fileStringIso
 				h.env.out.print("readAsString read: " + fileString)
-	        end
-		} val)
-
-class iso _TestFileReadByteBlock is UnitTest
-	fun name(): String => "readAsByteBlock"
-
-	fun apply(h: TestHelper) =>
-
-		FileExtReader.readAsByteBlock(h.env, "test.txt", {(fileByteBlockIso:ByteBlock iso, err: FileExtError val) =>
-			match (err)
-			| let errorString: String val =>
-				h.env.out.print("readAsByteBlock ended with error: " + errorString.string())
-			| None =>
-				let fileByteBlock:ByteBlock ref = consume fileByteBlockIso
-				h.env.out.print("readAsByteBlock read " + fileByteBlock.size().string() + " bytes")
 	        end
 		} val)
 
@@ -134,75 +122,32 @@ class iso _TestFileWriteString is UnitTest
 	        end
 		} val)
 
-class iso _TestFileWriteByteBlock is UnitTest
-	fun name(): String => "writeAsByteBlock"
-
-	fun apply(h: TestHelper) =>
-	
-		let bb = recover val 
-			let b = ByteBlock(14)
-			b.set('A')
-			b
-		end
-		
-		FileExtWriter.writeByteBlock(h.env, "/tmp/test3.txt", bb, {(err: FileExtError val) =>
-			match (err)
-			| let errorString: String val =>
-				h.env.out.print("writeString ended with error: " + errorString.string())
-			| None =>
-	
-			// Read the file back in and confirm it worked
-			FileExtReader.readAsByteBlock(h.env, "/tmp/test3.txt", {(fileByteBlockIso:ByteBlock iso, err: FileExtError val) =>
-				let fileString = fileByteBlockIso.string()
-				if fileString == "AAAAAAAAAAAAAA" then
-					h.env.out.print("writeByteBlock completed successfully")
-				else
-					h.env.out.print("writeByteBlock/readAsByteBlock comparison failed")
-				end
-			} val)
-	
-	        end
-		} val)
 
 // ********************************************************
 
 class iso _TestFileExtFlowing is UnitTest
 	fun name(): String => "read file as stream"
 	
-	
-	
 	fun apply(h: TestHelper) =>	
-	/*
-		try
-			var inFilePath = FilePath(h.env.root as AmbientAuth, "test_large.txt", FileCaps.>all())?
-			var outFilePath = FilePath(h.env.root as AmbientAuth, "/tmp/test_large.txt", FileCaps.>all())?
-			FileExtFlowReader(inFilePath, 512,
-				FileExtFlowWriter(outFilePath, FileExtFlowEnd)
-			)
+		let callback = object val is FlowFinished
+			fun flowFinished() =>
+				h.env.out.print("Flow finished!")
+				true
 		end
-	*/
 		
-		try
-			let callback = object val is FlowFinished
-				fun flowFinished() =>
-					h.env.out.print("Flow finished!")
-					true
-			end
-			
-			var inFilePath = FilePath(h.env.root as AmbientAuth, "test_large.txt", FileCaps.>all())?
-			var outFilePath = FilePath(h.env.root as AmbientAuth, "/tmp/test_large.txt", FileCaps.>all())?
-			
-			FileExtFlowReader(inFilePath, 512,
-				FileExtFlowPassthru(
-					FileExtFlowByteCounter(
-						FileExtFlowPassthru(
-							FileExtFlowWriter(outFilePath,
-								FileExtFlowByteCounter(
-									FileExtFlowFinished(callback, FileExtFlowEnd)
-								)
+		var inFilePath = "test_large.txt"
+		var outFilePath = "/tmp/test_large.txt"
+		
+		FileExtFlowReader(inFilePath, 512,
+			FileExtFlowPassthru(
+				FileExtFlowByteCounter(
+					FileExtFlowPassthru(
+						FileExtFlowWriter(outFilePath,
+							FileExtFlowByteCounter(
+								FileExtFlowFinished(callback, FileExtFlowEnd)
 							)
 						)
 					)
 				)
 			)
-		end
+		)
