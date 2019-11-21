@@ -32,19 +32,19 @@ primitive FileExt
 	fun read(fd:I32, content:Pointer[U8] tag, length:USize):ISize =>
 		@read(fd, content, length)
 	
-	fun _sharedToFile(content:CPointer box, filePath:String box)? =>
+	fun cpointerToFile(content:CPointer box, filePath:String box)? =>
 		let fd = @open(filePath.cstring(), pCRW(), 0x1B6)
 		if fd < 0 then
 			error
 		end
 		@write(fd, content.cpointer(), content.size())
 		@close(fd)
-	
+		
 	fun stringToFile(content:String box, filePath:String box)? =>
-		_sharedToFile(content, filePath)?
+		cpointerToFile(content, filePath)?
 	
 	fun arrayToFile(content:Array[U8] box, filePath:String box)? =>
-		_sharedToFile(content, filePath)?
+		cpointerToFile(content, filePath)?
 			
 	
 	fun fileToString(filePath:String box):String ref? =>
