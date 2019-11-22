@@ -19,7 +19,7 @@ actor FileExtFlowWriterEnd is Flowable
 			let block = data as CPointer
 			FileExt.write(fd, block.cpointer(0), block.size())
 		else
-			@fprintf[I64](@pony_os_stderr[Pointer[U8]](), "FileExtFlowWriterEnd requires a CPointer flowable\n".cstring())
+			@fprintf[I32](@pony_os_stderr[Pointer[U8]](), "FileExtFlowWriterEnd requires a CPointer flowable\n".cstring())
 		end
 
 
@@ -43,5 +43,5 @@ actor FileExtFlowWriter is Flowable
 			FileExt.write(fd, (dataIso as CPointer iso).cpointer(0), (dataIso as CPointer iso).size())
 			target.flowReceived(consume dataIso)
 		else
-			@fprintf[I64](@pony_os_stderr[Pointer[U8]](), "FileExtFlowWriter requires a CPointer flowable\n".cstring())
+			@fprintf[I32](@pony_os_stderr[Pointer[U8]](), "FileExtFlowWriter requires a CPointer flowable\n".cstring())
 		end

@@ -11,14 +11,14 @@ actor FileExtFlowByteCounter is Flowable
 		target = target'
 	
 	be flowFinished() =>
-		@fprintf[I64](@pony_os_stdout[Pointer[U8]](), "Flow closed, %d bytes were read\n".cstring(), bytesRead)
+		@fprintf[I32](@pony_os_stdout[Pointer[U8]](), "Flow closed, %d bytes were read\n".cstring(), bytesRead)
 		target.flowFinished()
 
 	be flowReceived(dataIso:Any iso) =>
 		try
 			bytesRead = bytesRead + (dataIso as CPointer iso).size()
 		else
-			@fprintf[I64](@pony_os_stderr[Pointer[U8]](), "FileExtFlowByteCounter requires a CPointer flowable\n".cstring())
+			@fprintf[I32](@pony_os_stderr[Pointer[U8]](), "FileExtFlowByteCounter requires a CPointer flowable\n".cstring())
 		end
 		target.flowReceived(consume dataIso)
 	
