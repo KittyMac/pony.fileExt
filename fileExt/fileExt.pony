@@ -35,6 +35,8 @@ primitive FileExt
 	fun cpointerToFile(content:CPointer box, filePath:String box)? =>
 		let fd = @open(filePath.cstring(), pCRW(), 0x1B6)
 		if fd < 0 then
+			let errno = @pony_os_errno[I32]()
+			@fprintf[I32](@pony_os_stdout[Pointer[U8]](), ("FileExt failed to open file, errno is " + errno.string() + "\n").cstring())
 			error
 		end
 		@write(fd, content.cpointer(), content.size())

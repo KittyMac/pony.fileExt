@@ -29,7 +29,7 @@ actor FileExtFlowReader
 		_readNextChunk()
 	
 	be _readNextChunk() =>
-		if fd > 0 then
+		if fd >= 0 then
 			var bufferIso = recover iso Array[U8](bufferSize) end
 		
 			let bytesRead = FileExt.read(fd, bufferIso.cpointer(0), bufferSize)
@@ -46,4 +46,8 @@ actor FileExtFlowReader
 				fd = 0
 				target.flowFinished()
 			end
+		else
+			let errno = @pony_os_errno[I32]()
+			@fprintf[I32](@pony_os_stdout[Pointer[U8]](), ("FileExtFlowReader failed to open, errno is " + errno.string() + "\n").cstring())
+			target.flowFinished()
 		end
