@@ -6,14 +6,14 @@ actor Main is TestList
 	new make() => None
 
 	fun tag tests(test: PonyTest) =>
-		test(_TestFileReadArray)
-		test(_TestFileReadString)
-		test(_TestFileReadError)
+		//test(_TestFileReadArray)
+		//test(_TestFileReadString)
+		//test(_TestFileReadError)
         
-		test(_TestFileWriteArray)
-		test(_TestFileWriteString)
-		
-		test(_TestFileStreaming)
+		//test(_TestFileWriteArray)
+		//test(_TestFileWriteString)
+        
+		test(_TestFileExtFlowing)
 	
  	fun @runtime_override_defaults(rto: RuntimeOptions) =>
 		rto.ponyminthreads = 2
@@ -28,14 +28,14 @@ class iso _TestFileReadArray is UnitTest
 	fun name(): String => "readAsArray"
 
 	fun apply(h: TestHelper) =>
-		h.long_test(2_000_000_000_000)
-		FileExtReader("test.txt").readAsArray({ (fileArrayIso:Array[U8] iso, err: FileExtError val) =>
+
+		FileExtReader.readAsArray(h.env, "test.txt", {(fileArrayIso:Array[U8] iso, err: FileExtError val) =>
 			match (err)
 			| let errorString: String val =>
-				h.complete(false)
+				h.env.out.print("readAsArray ended with error: " + errorString.string())
 			| None =>
 				let fileArray:Array[U8] ref = consume fileArrayIso
-				h.complete(fileArray.size() == 24)
+				h.env.out.print("readAsArray read " + fileArray.size().string() + " bytes")
 	        end
 		} val)
 
@@ -43,14 +43,15 @@ class iso _TestFileReadString is UnitTest
 	fun name(): String => "readAsString"
 
 	fun apply(h: TestHelper) =>
-		h.long_test(2_000_000_000_000)
-		FileExtReader("test.txt").readAsString({ (fileStringIso:String iso, err: FileExtError val) =>
+
+		FileExtReader.readAsString(h.env, "test.txt", {(fileStringIso:String iso, err: FileExtError val) =>
 			match (err)
 			| let errorString: String val =>
-				h.complete(false)
+				h.env.out.print("readAsString ended with error: " + errorString.string())
 			| None =>
+				//This is a test document.
 				let fileString:String ref = consume fileStringIso
-				h.complete(fileString == "This is a test document.")
+				h.env.out.print("readAsString read: " + fileString)
 	        end
 		} val)
 
@@ -58,13 +59,15 @@ class iso _TestFileReadError is UnitTest
 	fun name(): String => "readAsString returning an error"
 
 	fun apply(h: TestHelper) =>
-		h.long_test(2_000_000_000_000)
-		FileExtReader("some_file_does_not_exist.txt").readAsString({ (fileStringIso:String iso, err: FileExtError val) =>
+
+		FileExtReader.readAsString(h.env, "some_file_does_not_exist.txt", {(fileStringIso:String iso, err: FileExtError val) =>
 			match (err)
 			| let errorString: String val =>
-				h.complete(true)
+				h.env.out.print("readAsString ended with error: " + errorString.string())
 			| None =>
-				h.complete(false)
+				//This is a test document.
+				let fileString:String ref = consume fileStringIso
+				h.env.out.print("readAsString read: " + fileString)
 	        end
 		} val)
 
@@ -74,81 +77,77 @@ class iso _TestFileWriteArray is UnitTest
 	fun name(): String => "writeAsArray"
 
 	fun apply(h: TestHelper) =>
-		h.long_test(2_000_000_000_000)
-		
-		FileExtWriter("/tmp/test1.txt").writeAll("Hello, World!".array(), { (writer:FileExtWriter, err: FileExtError val) =>
+
+		FileExtWriter.writeArray(h.env, "/tmp/test1.txt", "Hello, World!".array(), {(err: FileExtError val) =>
 			match (err)
 			| let errorString: String val =>
-				h.complete(false)
-				return
+				h.env.out.print("writeString ended with error: " + errorString.string())
 			| None =>
-				FileExtReader("/tmp/test1.txt").readAsArray({ (fileArrayIso:Array[U8] iso, err: FileExtError val) =>
-					let fileString = String.from_iso_array(consume fileArrayIso)
-					h.complete(fileString == "Hello, World!")
-				} val)
+			
+			// Read the file back in and confirm it worked
+			FileExtReader.readAsArray(h.env, "/tmp/test1.txt", {(fileArrayIso:Array[U8] iso, err: FileExtError val) =>
+				let fileString = String.from_iso_array(consume fileArrayIso)
+				if fileString == "Hello, World!" then
+					h.env.out.print("writeArray completed successfully")
+				else
+					h.env.out.print("writeArray/readAsArray comparison failed")
 				end
+			} val)
+			
+	        end
 		} val)
 
 class iso _TestFileWriteString is UnitTest
+
+
 	fun name(): String => "writeString"
 
 	fun apply(h: TestHelper) =>
-		h.long_test(2_000_000_000_000)
 		
-		FileExtWriter("/tmp/test2.txt").writeAll("Hello, World!", {(writer:FileExtWriter, err: FileExtError val) =>
+		FileExtWriter.writeString(h.env, "/tmp/test2.txt", "Hello, World!", {(err: FileExtError val) =>
 			match (err)
 			| let errorString: String val =>
-				h.complete(false)
-				return
+				h.env.out.print("writeString ended with error: " + errorString.string())
 			| None =>
-				// Read the file back in and confirm it worked
-				FileExtReader("/tmp/test2.txt").readAsString({ (fileStringIso:String iso, err: FileExtError val) =>
-					let fileString:String ref = consume fileStringIso
-					h.complete(fileString == "Hello, World!")
-				} val)
+		
+			// Read the file back in and confirm it worked
+			FileExtReader.readAsString(h.env, "/tmp/test2.txt", {(fileStringIso:String iso, err: FileExtError val) =>
+				if fileStringIso == "Hello, World!" then
+					h.env.out.print("writeString completed successfully")
+				else
+					h.env.out.print("writeString/readAsString comparison failed")
+				end
+			} val)
+		
 	        end
 		} val)
 
 
+// ********************************************************
 
-
-class iso _TestFileStreaming is UnitTest
-	fun name(): String => "streaming"
-	fun apply(h: TestHelper) =>
-		h.long_test(2_000_000_000_000)
-		
-		_TestFileStreamingActual(h)
-		
-
-actor _TestFileStreamingActual
-	let chunkSize:USize = 64
-	let reader:FileExtReader
-	let writer:FileExtWriter
-	let h:TestHelper
-	var bytesTransferred:USize = 0
+class iso _TestFileExtFlowing is UnitTest
+	fun name(): String => "read file as stream"
 	
-	new create(h': TestHelper) =>
-		h = h'
+	fun apply(h: TestHelper) =>	
+		let callback = object val is FlowFinished
+			fun flowFinished() =>
+				h.env.out.print("Flow finished!")
+				true
+		end
 		
-		// read large file in chunks and write those chunks to another file
-		reader = FileExtReader("test_large.txt")
-		writer = FileExtWriter("/tmp/test_large.txt")
+		var inFilePath = "test_large.txt"
+		var outFilePath = "/tmp/test_large.txt"
 		
-		// start off the reading		
-		reader.read (chunkSize, this)
-	
-	be fileExtReaderDataReceived(sender:FileExtReader tag, dataIso:Array[U8] iso) =>
-		let dataVal:Array[U8] val = consume dataIso
-		bytesTransferred = bytesTransferred + dataVal.size()
-		reader.read (chunkSize, this)
-		writer.write(dataVal, {(writer:FileExtWriter, err: FileExtError val) => None })
-	
-	be fileExtReaderDataComplete(sender:FileExtReader tag) =>
-		writer.close()
-		reader.close()
-		h.complete(bytesTransferred == 206051)
-		
-	be fileExtReaderError(sender:FileExtReader tag, errorno:I32 val) =>
-		h.complete(false)
-
-
+		FileExtFlowReader(inFilePath, 512,
+			FileExtFlowPassthru(
+				FileExtFlowByteCounter(
+					FileExtFlowPassthru(
+						FileExtFlowWriter(outFilePath,
+							FileExtFlowByteCounter(
+								FileExtFlowFinished(callback, FileExtFlowEnd)
+							)
+						)
+					)
+				)
+			)
+		)

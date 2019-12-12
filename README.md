@@ -8,7 +8,17 @@ This repository is just me hacking around with [Pony](https://www.ponylang.io). 
 
 ### Streaming reading and writing
 
-Supports chunked reading and writing where the calling actor is in control of the rate of reading
+For optimal usage you should use the Flowable interface. This will process data in chunks, with each chunk calling one behaviour on the actor. This should allow for optimal scheduling in Pony, as we're not blocking on super large IO operations.
+
+The Flowable interface support chaining modules together. For example, you can combine chain the file stream reader to the [bzip2 stream decompressor](https://github.com/KittyMac/pony.bzip2) and the file stream writer very simply.
+
+```
+FileExtStreamReader(h.env, "test_large.bz2", 1024*1024*16,
+	BZ2StreamDecompress(h.env,
+		FileExtStreamWriterEnd(h.env, "/tmp/test_bzip_decompress.txt")
+	)
+)
+```
 
 ### One shot reading and writing
 
