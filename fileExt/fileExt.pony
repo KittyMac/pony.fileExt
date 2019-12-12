@@ -1,8 +1,8 @@
 use @open[I32](path:Pointer[U8] tag, oflag:U32, omode:U32)
-use @write[ISize](fildes:I32, bytes:Pointer[U8] tag, nbyte:USize)
-use @read[ISize](fildes:I32, bytes:Pointer[U8] tag, nbyte:USize)
-use @lseek[USize](fd: I32, offset: I64, base: I32)
-use @close[U32](fildes:I32)
+use @write[ISize](fildes:I32 box, bytes:Pointer[U8] tag, nbyte:USize)
+use @read[ISize](fildes:I32 box, bytes:Pointer[U8] tag, nbyte:USize)
+use @lseek[USize](fd: I32 box, offset: I64, base: I32)
+use @close[U32](fildes:I32 box)
 use @memset[Pointer[None]](dst: Pointer[None], set: U32, len: USize)
 
 type FileExtError is (String|None)
@@ -14,14 +14,14 @@ interface CPointer
 // just a straight wrapper around unix open/write/close; seems to kicks 
 // the pants off of Pony's File class in terms of performance
 primitive FileExt
-	fun pCRW():U32 => (0x0200 or 0x0002)
-	fun pR():U32 => (0x0000)
+	fun pReadWrite():U32 => (0x0200 or 0x0002)
+	fun pRead():U32 => (0x0000)
 	fun sSET():I32 => 0 // set file offset to offset
 	fun sCUR():I32 => 1 // set file offset to current plus offset
 	fun sEND():I32 => 2 // set file offset to EOF plus offset
 	
-	fun open(filePath:String):I32 =>
-		@open(filePath.cstring(), pCRW(), 0x1B6)
+	fun open(filePath:String, perm:U32 = (0x0200 or 0x0002)):I32 =>
+		@open(filePath.cstring(), perm, 0x1B6)
 	
 	fun close(fd:I32) =>
 		@close(fd)
@@ -33,7 +33,7 @@ primitive FileExt
 		@read(fd, content, length)
 	
 	fun cpointerToFile(content:CPointer box, filePath:String box)? =>
-		let fd = @open(filePath.cstring(), pCRW(), 0x1B6)
+		let fd = @open(filePath.cstring(), pReadWrite(), 0x1B6)
 		if fd < 0 then
 			let errno = @pony_os_errno[I32]()
 			@fprintf[I32](@pony_os_stdout[Pointer[U8]](), ("FileExt failed to open file, errno is " + errno.string() + "\n").cstring())
@@ -50,7 +50,7 @@ primitive FileExt
 			
 	
 	fun fileToString(filePath:String box):String ref? =>
-		let fd = @open(filePath.cstring(), pR(), 0755)
+		let fd = @open(filePath.cstring(), pRead(), 0755)
 		if fd < 0 then
 			error
 		end
@@ -78,7 +78,7 @@ primitive FileExt
 		content
 	
 	fun fileToArray(filePath:String box):Array[U8] ref? =>
-		let fd = @open(filePath.cstring(), pR(), 0755)
+		let fd = @open(filePath.cstring(), pRead(), 0755)
 		if fd < 0 then
 			error
 		end
