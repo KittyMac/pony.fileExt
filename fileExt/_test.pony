@@ -14,8 +14,10 @@ actor Main is TestList
 		test(_TestFileWriteString)
         
 		test(_TestFileExtFlowing)
+		test(_TestFileExtFlowingManual)
 	
  	fun @runtime_override_defaults(rto: RuntimeOptions) =>
+		//rto.ponyanalysis = true
 		rto.ponyminthreads = 2
 		rto.ponynoblock = true
 		rto.ponygcinitial = 0
@@ -124,6 +126,7 @@ class iso _TestFileExtFlowing is UnitTest
 	fun name(): String => "read file as stream"
 	
 	fun apply(h: TestHelper) =>	
+		h.long_test(2_000_000_000)
 	
 		let callback = object val is FlowFinished
 			fun flowFinished() =>
@@ -147,3 +150,52 @@ class iso _TestFileExtFlowing is UnitTest
 				)
 			)
 		)
+
+
+class iso _TestFileExtFlowingManual is UnitTest
+	fun name(): String => "read file as stream at manually controlled rate"
+
+	fun apply(h: TestHelper) =>	
+		h.long_test(2_000_000_000)
+		
+		_TestFileExtFlowingManualActor(h)
+		
+
+actor _TestFileExtFlowingManualActor is FileExtReaderCallback
+	
+	let h:TestHelper
+	
+	be fileExtReaderReadComplete(sender:FileExtFlowReader tag, done:Bool val) =>
+		if done == false then
+			sender.read()
+		end
+	
+	new create(h': TestHelper) =>
+		h = h'
+	
+		let callback = object val is FlowFinished
+			fun flowFinished() =>
+				h.complete(true)
+				true
+		end
+
+		var inFilePath = "test_large.txt"
+		var outFilePath = "/tmp/test_large.txt"
+
+		let reader = FileExtFlowReader.manual(inFilePath, 512, this,
+			FileExtFlowPassthru(
+				FileExtFlowByteCounter(
+					FileExtFlowPassthru(
+						FileExtFlowWriter(outFilePath,
+							FileExtFlowByteCounter(
+								FileExtFlowFinished(callback, FileExtFlowEnd)
+							)
+						)
+					)
+				)
+			)
+		)
+		
+		reader.read()
+
+
