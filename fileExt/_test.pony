@@ -82,7 +82,7 @@ class iso _TestFileWriteArray is UnitTest
 	fun apply(h: TestHelper) =>
 		h.long_test(2_000_000_000_000)
 
-		FileExtWriter.writeArray(h.env, "/tmp/test1.txt", "Hello, World!".array(), {(err: FileExtError val) =>
+		FileExtWriter.writeArray("/tmp/test1.txt", "Hello, World!".array(), {(err: FileExtError val) =>
 			match (err)
 			| let errorString: String val =>
 				h.complete(false)
@@ -105,7 +105,7 @@ class iso _TestFileWriteString is UnitTest
 	fun apply(h: TestHelper) =>
 		h.long_test(2_000_000_000_000)
 		
-		FileExtWriter.writeString(h.env, "/tmp/test2.txt", "Hello, World!", {(err: FileExtError val) =>
+		FileExtWriter.writeString("/tmp/test2.txt", "Hello, World!", {(err: FileExtError val) =>
 			match (err)
 			| let errorString: String val =>
 				h.complete(false)

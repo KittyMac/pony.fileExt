@@ -5,7 +5,7 @@ actor FileExtWriter
 
 	fun _tag():USize => 113
 	
-	be writeString (env:Env, filePath:String, fileContents:String, completionVal: {(FileExtError val)} val) =>
+	be writeString (filePath:String, fileContents:String, completionVal: {(FileExtError val)} val) =>
 		try
 			FileExt.stringToFile(fileContents, filePath)?
 			completionVal(None)
@@ -13,7 +13,7 @@ actor FileExtWriter
 			completionVal("Failed to write file " + filePath)
 		end
 	
-	be writeArray (env:Env, filePath:String, fileContents:Array[U8] val, completionVal: {(FileExtError val)} val) =>
+	be writeArray (filePath:String, fileContents:Array[U8] val, completionVal: {(FileExtError val)} val) =>
 		try
 			FileExt.arrayToFile(fileContents, filePath)?
 			completionVal(None)

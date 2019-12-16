@@ -26,7 +26,7 @@ actor FileExtFlowReader
 		target = target'
 		controller = None
 
-		fd = FileExt.open(filePath)
+		fd = FileExt.open(filePath, FileExt.pRead())
 		isAutomatic = true
 		
 		// We "prime the pump" by reading the first few chunks and sending them along.
@@ -41,7 +41,7 @@ actor FileExtFlowReader
 		target = target'
 		controller = controller'
 
-		fd = FileExt.open(filePath)
+		fd = FileExt.open(filePath, FileExt.pRead())
 		isAutomatic = false
 		
 	
