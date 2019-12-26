@@ -60,15 +60,17 @@ actor FileExtFlowReader
 				target.flowReceived(consume bufferIso)
 			else
 				FileExt.close(fd)
-				fd = -1
+				fd = -9999
 				target.flowFinished()
 				return true
 			end
 		else
-			let errno = @pony_os_errno[I32]()
-			@fprintf[I32](@pony_os_stdout[Pointer[U8]](), ("FileExtFlowReader failed to open, errno is " + errno.string() + "\n").cstring())
-			target.flowFinished()
-			return true
+			if fd != -9999 then
+				let errno = @pony_os_errno[I32]()
+				@fprintf[I32](@pony_os_stdout[Pointer[U8]](), ("FileExtFlowReader failed to open, errno is " + errno.string() + "\n").cstring())
+				target.flowFinished()
+				return true
+			end
 		end
 		false
 	
