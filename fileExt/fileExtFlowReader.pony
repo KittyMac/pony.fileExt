@@ -60,7 +60,7 @@ actor FileExtFlowReader
 				target.flowReceived(consume bufferIso)
 			else
 				FileExt.close(fd)
-				fd = 0
+				fd = -1
 				target.flowFinished()
 				return true
 			end
