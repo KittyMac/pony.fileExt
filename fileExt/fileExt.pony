@@ -14,13 +14,13 @@ interface CPointer
 // just a straight wrapper around unix open/write/close; seems to kicks 
 // the pants off of Pony's File class in terms of performance
 primitive FileExt
-	fun pReadWrite():U32 => (0x0200 or 0x0002)
+	fun pReadWrite():U32 => (0x0200 or 0x0002 or 0x0400)
 	fun pRead():U32 => (0x0000)
 	fun sSET():I32 => 0 // set file offset to offset
 	fun sCUR():I32 => 1 // set file offset to current plus offset
 	fun sEND():I32 => 2 // set file offset to EOF plus offset
 	
-	fun open(filePath:String, perm:U32 = (0x0200 or 0x0002)):I32 =>
+	fun open(filePath:String, perm:U32 = (0x0200 or 0x0002 or 0x0400)):I32 =>
 		@open(filePath.cstring(), perm, 0x1B6)
 	
 	fun close(fd:I32) =>
@@ -112,6 +112,7 @@ primitive FileExt
 	let kO_RDONLY:U32 = 0x0000
 	let kO_WRONLY:U32 = 0x0001
 	let kO_RDWR:U32 = 0x0002
+	let kO_TRUNC:U32 = 0x0400
 
 	let kS_IRWXU:U32 = 0000700
 	let kS_IRUSR:U32 = 0000400
