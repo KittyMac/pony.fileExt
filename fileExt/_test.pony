@@ -34,7 +34,7 @@ class iso _TestFileReadArray is UnitTest
 
 		FileExtReader.readAsArray(h.env, "test.txt", {(fileArrayIso:Array[U8] iso, err: FileExtError val) =>
 			match (err)
-			| let errorString: String val =>
+			| let _: String val =>
 				h.complete(false)
 			| None =>
 				let fileArray:Array[U8] ref = consume fileArrayIso
@@ -50,7 +50,7 @@ class iso _TestFileReadString is UnitTest
 		
 		FileExtReader.readAsString(h.env, "test.txt", {(fileStringIso:String iso, err: FileExtError val) =>
 			match (err)
-			| let errorString: String val =>
+			| let _: String val =>
 				h.complete(false)
 			| None =>
 				//This is a test document.
@@ -67,7 +67,7 @@ class iso _TestFileReadError is UnitTest
 
 		FileExtReader.readAsString(h.env, "some_file_does_not_exist.txt", {(fileStringIso:String iso, err: FileExtError val) =>
 			match (err)
-			| let errorString: String val =>
+			| let _: String val =>
 				h.complete(true)
 			| None =>
 				h.complete(false)
@@ -84,7 +84,7 @@ class iso _TestFileWriteArray is UnitTest
 
 		FileExtWriter.writeArray("/tmp/test1.txt", "Hello, World!".array(), {(err: FileExtError val) =>
 			match (err)
-			| let errorString: String val =>
+			| let _: String val =>
 				h.complete(false)
 			| None =>
 			
@@ -107,7 +107,7 @@ class iso _TestFileWriteString is UnitTest
 		
 		FileExtWriter.writeString("/tmp/test2.txt", "Hello, World!", {(err: FileExtError val) =>
 			match (err)
-			| let errorString: String val =>
+			| let _: String val =>
 				h.complete(false)
 			| None =>
 		
