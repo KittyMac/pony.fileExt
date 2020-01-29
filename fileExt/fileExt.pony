@@ -20,7 +20,7 @@ primitive FileExt
 	fun sCUR():I32 => 1 // set file offset to current plus offset
 	fun sEND():I32 => 2 // set file offset to EOF plus offset
 	
-	fun open(filePath:String, perm:U32 = (0x0200 or 0x0002 or 0x0400)):I32 =>
+	fun open(filePath:String box, perm:U32 = (0x0200 or 0x0002 or 0x0400)):I32 =>
 		@open(filePath.cstring(), perm, 0x1B6)
 	
 	fun close(fd:I32) =>
@@ -31,6 +31,12 @@ primitive FileExt
 	
 	fun read(fd:I32, content:Pointer[U8] tag, length:USize):ISize =>
 		@read(fd, content, length)
+	
+	fun size(fd:I32):USize =>
+		let currentPos = @lseek(fd, 0, sCUR()).i64()
+		let totalSize = @lseek(fd, 0, sEND())
+		@lseek(fd, currentPos, sSET())
+		totalSize
 	
 	fun cpointerToFile(content:CPointer box, filePath:String box)? =>
 		let fd = @open(filePath.cstring(), pReadWrite(), 0x1B6)
@@ -47,7 +53,6 @@ primitive FileExt
 	
 	fun arrayToFile(content:Array[U8] box, filePath:String box)? =>
 		cpointerToFile(content, filePath)?
-			
 	
 	fun fileToString(filePath:String box):String ref? =>
 		let fd = @open(filePath.cstring(), pRead(), 0755)
