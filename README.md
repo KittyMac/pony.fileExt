@@ -19,7 +19,7 @@ FileExtStreamReader(h.env, "test_large.bz2", 1024*1024*16,
 	)
 )
 ```
-
+ 
 ### One shot reading and writing
 
 Note that this is synchronous IO in the actor, so reading or writing large files will cause the actor block while it waits on the file system to deliver.
